@@ -1,11 +1,22 @@
-# Simple Todo List
+# Meteor dynamic `import(...)` bug when using dynamic imports inside of a Meteor package
 
-The Meteor Tutorial app.
+How to reproduce the bug: 
 
-Use it to share a single todo list with your friends. The list updates on everyone's screen in real time, and you can make tasks private if you don't want others to see them.
+1. Start the app normally (with `npm start`) – the unminimized bundle size should be around 1MB
+2. In the file `Task.jsx` in the `heavy` package, comment out the following lines: 
 
-Learn how to build this app by following the [Meteor Tutorial](https://www.meteor.com/tutorials/react/creating-an-app).
+```
+    // Uncommenting these three lines imports all of the dependencies of HeavyComponent
 
-Read more about building apps with Meteor in the [Meteor Guide](http://guide.meteor.com).
+    // if (2===3) {
+    //   import('./HeavyComponent.jsx');
+    // }
+```
 
-![screenshot](screenshot.png)
+Clearly that import statement should never be run. 
+
+3. Start the app again 
+
+The unminimized bundle size is now around 2.3MB, and you can clearly see that the imports from the `HeavyComponent.jsx` file have been imported into the client bundle. 
+
+When you run practically the same code outside of a package (i.e. in an `imports` folder in the main folder), then this behavior does not occur, and the imports from `HeavyComponent.jsx` only get imported if the `import(./HeavyComponent.jsx)` statement is programmatically reached
